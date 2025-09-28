@@ -1,58 +1,66 @@
 import java.util.*;
 
-class Solution{
+class Solution {
 
-    public static String findOrder(String words[], int k){
+    public static String findOrder(String words[], int k) {
 
-        //Step 1 - > create a graph
+        // Step 1: Create adjacency list
         List<List<Integer>> adj = new ArrayList<>();
-
-        for(int i=0;i<k;i++){
+        for (int i = 0; i < k; i++) {
             adj.add(new ArrayList<>());
         }
-        
-        //Step 2 - compare adjacent words
-        for(int i=0;i<words.length-1;i++){
+
+        // Step 2: Build graph by comparing adjacent words
+        for (int i = 0; i < words.length - 1; i++) {
             String w1 = words[i];
-            String w2 = words[i+1];
+            String w2 = words[i + 1];
 
             int minLen = Math.min(w1.length(), w2.length());
 
-            for(int j=0;j<minLen;j++){
-                if(w1.charAt(j) != w2.charAt(j)){
+            for (int j = 0; j < minLen; j++) {
+                if (w1.charAt(j) != w2.charAt(j)) {
                     adj.get(w1.charAt(j) - 'a').add(w2.charAt(j) - 'a');
-                    break;
+                    break; // only the first mismatch matters
                 }
             }
         }
 
-        //Step 3 - Topological Sorting
-        int indegree[] = new int[k];
-        for(int u=0;u<k;u++){
-            for(int v : adj.get(u)){
-                indegree[v]++;
+        // Step 3: DFS Topological Sort
+        boolean[] visited = new boolean[k];
+        boolean[] inRecursion = new boolean[k]; // optional, for cycle detection
+        Stack<Integer> stack = new Stack<>();
+
+        for (int i = 0; i < k; i++) {
+            if (!visited[i]) {
+                dfs(i, adj, visited, inRecursion, stack);
             }
         }
 
-        Queue<Integer> q = new LinkedList<>();
-        for(int i=0;i<k;i++){
-            if(indegree[i] == 0) q.add(i);
-        }
-
+        // Step 4: Build answer from stack
         StringBuilder sb = new StringBuilder();
+        while (!stack.isEmpty()) {
+            sb.append((char) (stack.pop() + 'a'));
+        }
 
-        while(!q.isEmpty()){
-            int curr = q.remove();
+        return sb.toString();
+    }
 
-            sb.append((char) (curr + 'a'));
+    private static void dfs(int node, List<List<Integer>> adj,
+                            boolean[] visited, boolean[] inRecursion, Stack<Integer> stack) {
+        visited[node] = true;
+        inRecursion[node] = true;
 
-            for(int v : adj.get(curr)){
-                indegree[v] --;
-                if(indegree[v] == 0){
-                    q.add(v);
-                }
+        for (int neighbor : adj.get(node)) {
+            if (!visited[neighbor]) {
+                dfs(neighbor, adj, visited, inRecursion, stack);
+            }
+            // Optional: If we want to detect cycles
+            else if (inRecursion[neighbor]) {
+                throw new RuntimeException("Cycle detected in graph");
             }
         }
-        return sb.toString();
+
+        inRecursion[node] = false;
+        stack.push(node);
     }
 }
