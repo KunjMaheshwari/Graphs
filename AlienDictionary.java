@@ -27,12 +27,11 @@ class Solution {
 
         // Step 3: DFS Topological Sort
         boolean[] visited = new boolean[k];
-        boolean[] inRecursion = new boolean[k]; // optional, for cycle detection
         Stack<Integer> stack = new Stack<>();
 
         for (int i = 0; i < k; i++) {
             if (!visited[i]) {
-                dfs(i, adj, visited, inRecursion, stack);
+                dfs(i, adj, visited, stack);
             }
         }
 
@@ -46,21 +45,14 @@ class Solution {
     }
 
     private static void dfs(int node, List<List<Integer>> adj,
-                            boolean[] visited, boolean[] inRecursion, Stack<Integer> stack) {
+                            boolean[] visited, Stack<Integer> stack) {
         visited[node] = true;
-        inRecursion[node] = true;
 
         for (int neighbor : adj.get(node)) {
             if (!visited[neighbor]) {
-                dfs(neighbor, adj, visited, inRecursion, stack);
-            }
-            // Optional: If we want to detect cycles
-            else if (inRecursion[neighbor]) {
-                throw new RuntimeException("Cycle detected in graph");
+                dfs(neighbor, adj, visited, stack);
             }
         }
-
-        inRecursion[node] = false;
         stack.push(node);
     }
 }
